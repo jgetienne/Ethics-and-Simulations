@@ -1,0 +1,138 @@
+breed [ sheep a-sheep ]
+turtles-own [ objects give vicarious-gain instrumental-gain greed  phenomenal-value person  empathy] 
+extensions [ csv ]
+to clear
+  clear-all
+  ask patches [
+    set pcolor green
+  ]
+  reset-ticks
+end
+to procreate
+ create-sheep number-of-sheep[
+    setxy random-xcor random-ycor
+    set color new-empathy * 139
+    set shape "face happy"
+    set objects 100
+    set vicarious-gain 0
+    set instrumental-gain 0
+    set phenomenal-value 1
+    set empathy new-empathy
+    set greed greed-maker
+    set person 100000
+  ]
+end
+to go
+  if not any? turtles [
+    stop]
+  if mean [objects] of turtles < .5 [
+    stop]
+ ask turtles [
+    wiggle
+    move
+    exchange]
+  tick
+end
+to exchange
+ exchange-emotionally
+ exchange-symbolically
+ organize
+ my-update-plots
+end
+to exchange-emotionally
+  if any? turtles in-radius radi [
+    let charity 0
+    let target one-of turtles in-radius radi
+    if phenomenal-value > 0 [
+      if instrumental-gain > [instrumental-gain] of target [
+        if empathy <= 1 [
+          set give (instrumental-gain - [instrumental-gain] of target) / 2
+           let mygive (instrumental-gain - [instrumental-gain] of target) / 2
+           set charity (give * empathy)
+           set vicarious-gain (vicarious-gain + (charity * 2))
+           set instrumental-gain instrumental-gain - charity
+           set phenomenal-value ((instrumental-gain + vicarious-gain)/ count turtles )
+
+         ask target[
+           set instrumental-gain (instrumental-gain + charity)
+           set vicarious-gain (vicarious-gain + (charity))
+           set phenomenal-value ((instrumental-gain + vicarious-gain)/ count turtles )
+      ]]
+      if empathy > 1 and empathy <= 2[
+        let stockholm (empathy - 1)
+        set give (instrumental-gain - [instrumental-gain] of target) / 2
+        let mygive (instrumental-gain - [instrumental-gain] of target) / 2
+        set charity give * 1
+        let loss (give * empathy)
+        set vicarious-gain vicarious-gain - ( loss - charity)
+        set vicarious-gain vicarious-gain + loss
+        set instrumental-gain instrumental-gain - loss
+        set phenomenal-value ((instrumental-gain + vicarious-gain)/ count turtles )
+        ask target[
+          set instrumental-gain (instrumental-gain + loss)
+          set vicarious-gain (vicarious-gain - ((loss - charity))* empathy)
+          set phenomenal-value ((instrumental-gain + vicarious-gain)/ count turtles )]] ]
+  ]]
+end
+to exchange-symbolically
+  let mywho who
+  let myobjects objects
+  if any? turtles  with [who != mywho and objects > 0 ] in-radius radi[
+    let profit 0
+    let target one-of turtles with [who != mywho and objects > 0  ] in-radius radi
+    set person [who] of target
+    if [person] of target = who[
+      if objects > 0.01  [
+        if [objects] of target > 0.01 [
+        let mygive (objects * greed)
+        set give (objects * greed)
+        ask target[
+          set give (objects * greed)]
+        set profit (give +  [give] of  target)/ 2
+        let myprofit (give +  [give] of  target)/ 2
+        set objects (objects - give)
+        set instrumental-gain (instrumental-gain + myprofit)
+        set phenomenal-value ((instrumental-gain + vicarious-gain)/ count turtles )
+        ask target[
+          set objects (objects - give)
+          set instrumental-gain (instrumental-gain + profit)
+          set phenomenal-value ((instrumental-gain + vicarious-gain)/ count turtles )
+      ]
+        set person 1000000
+  ]
+  ]
+    ]
+  ]
+end
+to organize
+  if progress = true [
+    if mean[phenomenal-value] of turtles > 0[
+      if mean[phenomenal-value] of turtles  > mean[phenomenal-value] of turtles with[instrumental-gain = max[instrumental-gain] of turtles][
+        ask turtles with [instrumental-gain = max[instrumental-gain] of turtles and empathy < .99][
+          set empathy empathy + .01
+          set color empathy * 139]
+          ask turtles with [instrumental-gain = min[instrumental-gain] of turtles and empathy > 1][
+            set empathy empathy - 0.01
+            set color empathy * 139]
+  ]
+    ]
+  ]
+end
+to wiggle
+  rt random 90
+  lt random 90
+end
+to move
+  forward 1
+end
+to my-update-plots
+  set-current-plot "moral progress"
+  set-current-plot-pen "empathy"
+  plot mean [empathy] of turtles
+  set-current-plot "phenomenal value"
+  set-current-plot-pen "instrumental-gain"
+  plot mean [instrumental-gain] of turtles
+  set-current-plot-pen "vicarious-gain"
+  plot mean [vicarious-gain] of turtles
+end
+
